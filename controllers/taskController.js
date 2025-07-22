@@ -13,22 +13,25 @@ const createTasksFromTranscript = async (req, res) => {
         const parsedTasks = await analyzeTranscript(transcript)
 
         if (!Array.isArray(parsedTasks)) {
-            return res.status(400).json({ error: "AI returned invalid format" })
+            return res.status(400).json({ error: "Something went wrong." })
         }
 
         const tasksToSave = parsedTasks.map(t => ({
             userId: "dummy",
             title: t.title,
-            priority: t.priority, 
+            priority: t.priority,
             completed: false
         }))
 
         const saved = await Task.insertMany(tasksToSave)
+        if (!saved || saved.length === 0) {
+            return res.status(400).json({ extractedTasks: 0, error: "😕 Oops! Our AI was unable to analyze your audio. Try speaking clearly in English or recording in a peaceful environment." })
+        }
 
-        res.status(201).json({ tasks: saved, tasksExtracted: saved?.length || 0 })
+        res.status(201).json({ message: "🎉 Wohoo! Successfully analyzed your audio.", tasksExtracted: saved?.length || 0 })
     } catch (err) {
         console.error(err)
-        res.status(500).json({ error: "AI processing failed" })
+        res.status(500).json({ error: "Audio analysis failed." })
     }
 }
 
@@ -59,7 +62,7 @@ const toggleTaskCompletion = async (req, res) => {
     res.json(task)
 }
 
-module.exports={
+module.exports = {
     createTasksFromTranscript,
     getPendingTasks,
     getCompletedTasks,
