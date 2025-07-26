@@ -25,7 +25,7 @@ const createTasksFromTranscript = async (req, res) => {
 
         const saved = await Task.insertMany(tasksToSave)
         if (!saved || saved.length === 0) {
-            return res.status(400).json({ extractedTasks: 0, error: "😕 Oops! Our AI was unable to analyze your audio. Try speaking clearly in English or recording in a peaceful environment." })
+            return res.status(400).json({ extractedTasks: 0, error: "Oops! Our AI was unable to analyze your audio. Try speaking clearly in English or recording in a peaceful environment." })
         }
 
         res.status(201).json({ message: "🎉 Wohoo! Successfully analyzed your audio.", tasksExtracted: saved?.length || 0, saved })
