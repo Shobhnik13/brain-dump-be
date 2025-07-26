@@ -5,9 +5,9 @@ const { analyzeTranscript } = require("../services/geminiService")
 // POST /api/tasks/analyze-transcript
 const createTasksFromTranscript = async (req, res) => {
     const { transcript } = req.body
-    // const userId = req.headers["x-user-id"] || "test-user" // use actual auth in prod
+    const userId = req.headers["user-id"] || "test-user"
 
-    // if (!transcript) return res.status(400).json({ error: "Missing transcript" })
+    if (!transcript) return res.status(400).json({ error: "Missing transcript" })
 
     try {
         const parsedTasks = await analyzeTranscript(transcript)
@@ -17,7 +17,7 @@ const createTasksFromTranscript = async (req, res) => {
         }
 
         const tasksToSave = parsedTasks.map(t => ({
-            userId: "dummy",
+            userId: userId,
             title: t.title,
             priority: t.priority,
             completed: false
@@ -28,7 +28,7 @@ const createTasksFromTranscript = async (req, res) => {
             return res.status(400).json({ extractedTasks: 0, error: "😕 Oops! Our AI was unable to analyze your audio. Try speaking clearly in English or recording in a peaceful environment." })
         }
 
-        res.status(201).json({ message: "🎉 Wohoo! Successfully analyzed your audio.", tasksExtracted: saved?.length || 0 })
+        res.status(201).json({ message: "🎉 Wohoo! Successfully analyzed your audio.", tasksExtracted: saved?.length || 0, saved })
     } catch (err) {
         console.error(err)
         res.status(500).json({ error: "Audio analysis failed." })
@@ -37,14 +37,14 @@ const createTasksFromTranscript = async (req, res) => {
 
 // GET /api/tasks
 const getPendingTasks = async (req, res) => {
-    const userId = req.headers["x-user-id"] || "test-user"
+    const userId = req.headers["user-id"]
     const tasks = await Task.find({ userId, completed: false })
     res.json(tasks)
 }
 
 // GET /api/tasks/completed
 const getCompletedTasks = async (req, res) => {
-    const userId = req.headers["x-user-id"] || "test-user"
+    const userId = req.headers["user-id"] 
     const tasks = await Task.find({ userId, completed: true })
     res.json(tasks)
 }
@@ -52,11 +52,12 @@ const getCompletedTasks = async (req, res) => {
 // PATCH /api/tasks/:id/toggle
 const toggleTaskCompletion = async (req, res) => {
     const { id } = req.params
-    const task = await Task.findById(id)
+    const task = await Task.findOne({ taskId: id })
 
     if (!task) return res.status(404).json({ error: "Task not found" })
 
-    task.completed = !task.completed
+    task.completed = true
+    task.completedOn = new Date() || null
     await task.save()
 
     res.json(task)
