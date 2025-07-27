@@ -31,10 +31,14 @@ app.use(morgan(format, { skip: skipOptions }));
 app.use(cors())
 app.use(express.json())
 
+// health route
+app.get('/health', (req, res) => {
+    res.status(200).json({ message: "OK" })
+})
+
 // routes
 app.use("/api/v1/tasks", taskRoutes)
 
-// health route
 
 const PORT = process.env.PORT
 
