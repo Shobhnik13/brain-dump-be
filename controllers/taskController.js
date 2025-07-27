@@ -4,9 +4,9 @@ const { analyzeTranscript } = require("../services/geminiService")
 
 // POST /api/tasks/analyze-transcript
 const createTasksFromTranscript = async (req, res) => {
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
     const { transcript } = req.body
-    const userId = req.headers["user-id"] || "test-user"
-
     if (!transcript) return res.status(400).json({ error: "Missing transcript" })
 
     try {
@@ -37,20 +37,24 @@ const createTasksFromTranscript = async (req, res) => {
 
 // GET /api/tasks
 const getPendingTasks = async (req, res) => {
-    const userId = req.headers["user-id"]
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
     const tasks = await Task.find({ userId, completed: false })
     res.json(tasks)
 }
 
 // GET /api/tasks/completed
 const getCompletedTasks = async (req, res) => {
-    const userId = req.headers["user-id"] 
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
     const tasks = await Task.find({ userId, completed: true })
     res.json(tasks)
 }
 
 // PATCH /api/tasks/:id/toggle
 const toggleTaskCompletion = async (req, res) => {
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
     const { id } = req.params
     const task = await Task.findOne({ taskId: id })
 

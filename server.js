@@ -6,6 +6,7 @@ const taskRoutes = require("./routes/taskRoutes")
 const connectDB = require("./config/db")
 const morgan = require('morgan');
 const chalk = require('chalk');
+const { ClerkExpressRequireAuth } = require('@clerk/clerk-sdk-node')
 
 const app = express()
 
