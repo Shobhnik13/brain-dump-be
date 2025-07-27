@@ -67,9 +67,30 @@ const toggleTaskCompletion = async (req, res) => {
     res.json(task)
 }
 
+
+const updateTask = async (req,res) => {
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
+    const { id } = req.params
+    const task = await Task.findOne({ taskId: id })
+    if (!task) return res.status(404).json({ error: "Task not found" })
+    const { title } = req.body
+    if (!title) return res.status(400).json({ error: "Missing title" })
+    const sanitizedTitle = title.trim().replace(/[^a-zA-Z0-9\s]/g, "")
+    if (sanitizedTitle.length < 3) {
+        return res.status(400).json({ error: "Title must be at least 3 characters long" })
+    }
+    if (task?.title === sanitizedTitle) {
+        return res.status(400).json({ error: "You can not update with same title" })
+    }
+    task.title = sanitizedTitle
+    await task.save()
+    res.status(200).json({ message: "Task updated successfully"})
+}
 module.exports = {
     createTasksFromTranscript,
     getPendingTasks,
     getCompletedTasks,
-    toggleTaskCompletion
+    toggleTaskCompletion,
+    updateTask
 }
