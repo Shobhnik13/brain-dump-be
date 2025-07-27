@@ -34,6 +34,8 @@ app.use(express.json())
 // routes
 app.use("/api/v1/tasks", taskRoutes)
 
+// health route
+
 const PORT = process.env.PORT
 
 const startServer = async () => {

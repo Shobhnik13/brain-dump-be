@@ -11,7 +11,19 @@ const taskSchema = new mongoose.Schema({
     title: String,
     priority: { type: String, enum: ["urgent", "regular", "weekly"] },
     completed: { type: Boolean, default: false },
+    isDeleted: { type: Boolean, default: false },
     completedOn: { type: Date, default: null }
-}, { timestamps: true })
+},
+    {
+        timestamps: true,
+        toJSON: {
+            transform(doc, ret) {
+                delete ret.userId
+                delete ret.isDeleted
+                delete ret.__v
+                delete ret._id
+            }
+        }
+    })
 
 module.exports = mongoose.model("Task", taskSchema)

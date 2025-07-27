@@ -20,7 +20,8 @@ const createTasksFromTranscript = async (req, res) => {
             userId: userId,
             title: t.title,
             priority: t.priority,
-            completed: false
+            completed: false,
+            isDeleted: false,
         }))
 
         const saved = await Task.insertMany(tasksToSave)
@@ -39,7 +40,7 @@ const createTasksFromTranscript = async (req, res) => {
 const getPendingTasks = async (req, res) => {
     const userId = req.auth.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" })
-    const tasks = await Task.find({ userId, completed: false })
+    const tasks = await Task.find({ userId, completed: false, isDeleted: false })
     res.json(tasks)
 }
 
@@ -47,7 +48,7 @@ const getPendingTasks = async (req, res) => {
 const getCompletedTasks = async (req, res) => {
     const userId = req.auth.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" })
-    const tasks = await Task.find({ userId, completed: true })
+    const tasks = await Task.find({ userId, completed: true, isDeleted: false })
     res.json(tasks)
 }
 
@@ -56,7 +57,7 @@ const toggleTaskCompletion = async (req, res) => {
     const userId = req.auth.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" })
     const { id } = req.params
-    const task = await Task.findOne({ taskId: id })
+    const task = await Task.findOne({ taskId: id, completed: false, isDeleted: false })
 
     if (!task) return res.status(404).json({ error: "Task not found" })
 
@@ -68,29 +69,60 @@ const toggleTaskCompletion = async (req, res) => {
 }
 
 
-const updateTask = async (req,res) => {
+const updateTask = async (req, res) => {
     const userId = req.auth.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" })
     const { id } = req.params
-    const task = await Task.findOne({ taskId: id })
+
+    const task = await Task.findOne({ taskId: id, isDeleted: false })
     if (!task) return res.status(404).json({ error: "Task not found" })
+
     const { title } = req.body
     if (!title) return res.status(400).json({ error: "Missing title" })
     const sanitizedTitle = title.trim().replace(/[^a-zA-Z0-9\s]/g, "")
+
     if (sanitizedTitle.length < 3) {
         return res.status(400).json({ error: "Title must be at least 3 characters long" })
     }
     if (task?.title === sanitizedTitle) {
         return res.status(400).json({ error: "You can not update with same title" })
     }
+
     task.title = sanitizedTitle
     await task.save()
-    res.status(200).json({ message: "Task updated successfully"})
+
+    res.status(200).json({ message: "Task updated successfully" })
+}
+
+// clear all completd ones
+const clearAllCompletedTask = async (req, res) => {
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
+    try {
+        const tasksToDelete = await Task.find({userId, completed: true, isDeleted: false})
+        if (tasksToDelete.length === 0) {
+            return res.status(404).json({ error: "You must complete task before deleting it" })
+        }
+        // Delete all completed tasks for the user
+        await Task.updateMany({
+            userId,
+            completed: true,
+            isDeleted: false,
+        }, {
+            $set: { isDeleted: true }
+        }
+        )
+        res.json({ message: "All tasks deleted successfully" })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "Failed to clear completed tasks" })
+    }
 }
 module.exports = {
     createTasksFromTranscript,
     getPendingTasks,
     getCompletedTasks,
     toggleTaskCompletion,
-    updateTask
+    updateTask,
+    clearAllCompletedTask
 }
