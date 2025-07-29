@@ -123,10 +123,10 @@ const clearAllCompletedTask = async (req, res) => {
 const redoTask = async (req, res) => {
     const userId = req.auth.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" })
-    const { taskId } = req.params
+    const { id } = req.params
 
     try {
-        const task = await Task.findOne({ userId, taskId, isDeleted: false, completed: true })
+        const task = await Task.findOne({ userId, taskId: id, isDeleted: false, completed: true })
         if (!task) return res.status(404).json({ error: "Task not found" })
 
         // Restore the task by setting isDeleted to false

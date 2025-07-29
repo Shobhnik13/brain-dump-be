@@ -16,6 +16,6 @@ router.get("/", ClerkExpressRequireAuth(), getPendingTasks)
 router.get("/completed", ClerkExpressRequireAuth(), getCompletedTasks)
 router.patch("/:id/toggle", ClerkExpressRequireAuth(), toggleTaskCompletion)
 router.patch('/:id/update', ClerkExpressRequireAuth(), updateTask)
+router.post('/:id/redo', ClerkExpressRequireAuth(), redoTask)
 router.post('/clear-all', ClerkExpressRequireAuth(), clearAllCompletedTask)
-router.post('/redo/:taskId', ClerkExpressRequireAuth(), redoTask)
 module.exports = router
