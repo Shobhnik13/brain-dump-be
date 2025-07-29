@@ -99,7 +99,7 @@ const clearAllCompletedTask = async (req, res) => {
     const userId = req.auth.userId;
     if (!userId) return res.status(401).json({ error: "Unauthorized" })
     try {
-        const tasksToDelete = await Task.find({userId, completed: true, isDeleted: false})
+        const tasksToDelete = await Task.find({ userId, completed: true, isDeleted: false })
         if (tasksToDelete.length === 0) {
             return res.status(404).json({ error: "You must complete task before deleting it" })
         }
@@ -118,11 +118,33 @@ const clearAllCompletedTask = async (req, res) => {
         res.status(500).json({ error: "Failed to clear completed tasks" })
     }
 }
+
+// Redo task
+const redoTask = async (req, res) => {
+    const userId = req.auth.userId;
+    if (!userId) return res.status(401).json({ error: "Unauthorized" })
+    const { taskId } = req.params
+
+    try {
+        const task = await Task.findOne({ userId, taskId, isDeleted: false, completed: true })
+        if (!task) return res.status(404).json({ error: "Task not found" })
+
+        // Restore the task by setting isDeleted to false
+        task.completed = false
+        await task.save()
+
+        res.json({ message: "Task added again" })
+    } catch (err) {
+        console.error(err)
+        res.status(500).json({ error: "Failed to restore task" })
+    }
+}
 module.exports = {
     createTasksFromTranscript,
     getPendingTasks,
     getCompletedTasks,
     toggleTaskCompletion,
     updateTask,
-    clearAllCompletedTask
+    clearAllCompletedTask,
+    redoTask
 }

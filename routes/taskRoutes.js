@@ -6,7 +6,8 @@ const {
     getCompletedTasks,
     toggleTaskCompletion,
     updateTask,
-    clearAllCompletedTask
+    clearAllCompletedTask,
+    redoTask
 } = require("../controllers/taskController")
 const { ClerkExpressRequireAuth } = require("@clerk/clerk-sdk-node")
 
@@ -16,4 +17,5 @@ router.get("/completed", ClerkExpressRequireAuth(), getCompletedTasks)
 router.patch("/:id/toggle", ClerkExpressRequireAuth(), toggleTaskCompletion)
 router.patch('/:id/update', ClerkExpressRequireAuth(), updateTask)
 router.post('/clear-all', ClerkExpressRequireAuth(), clearAllCompletedTask)
+router.post('/redo/:taskId', ClerkExpressRequireAuth(), redoTask)
 module.exports = router
