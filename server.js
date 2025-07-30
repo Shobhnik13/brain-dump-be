@@ -28,7 +28,18 @@ const skipOptions = (req) => req.method === 'OPTIONS';
 
 // middlewares
 app.use(morgan(format, { skip: skipOptions }));
-app.use(cors())
+// cors config prod+local+http/https
+const allowedOrigins = ["http://localhost:5004", "http://api.shobhnik.xyz/mybraindump-backend", "https://api.shobhnik.xyz/mybraindump-backend/health"]
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            return callback(null, true)
+        }
+        return callback(new Error("Not allowed by CORS"))
+    },
+    credentials: true,
+}))
+
 app.use(express.json())
 
 // health route
