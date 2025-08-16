@@ -27,7 +27,9 @@ const format = '[:timestamp] :method :urlOnly :statusColored :response-time ms';
 const skipOptions = (req) => req.method === 'OPTIONS';
 
 // middlewares
-app.use(morgan(format, { skip: skipOptions }));
+app.use(morgan(format, { 
+    skip: (req, res) => skipOptions(req) || req.path === '/health'
+}));
 
 // cors config prod+local+http/https
 app.use(cors())
